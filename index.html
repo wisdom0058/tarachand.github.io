@@ -1,0 +1,1489 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>Tarachand MV School — Document Manager</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f3f7f4;
+      --surface: #ffffff;
+      --surface-soft: #f8fbf8;
+      --ink: #1d2d26;
+      --muted: #718177;
+      --line: #e3ebe5;
+      --brand: #176b4b;
+      --brand-dark: #10583e;
+      --brand-soft: #e9f4ed;
+      --teal: #b98735;
+      --success: #167a53;
+      --success-soft: #eaf8f1;
+      --danger: #bb3b45;
+      --danger-soft: #fff0f1;
+      --warning: #96630a;
+      --warning-soft: #fff7e5;
+      --shadow: 0 18px 45px rgba(31, 48, 86, .07);
+      --radius-lg: 22px;
+      --radius-md: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--page);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    button, input { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, input:focus-visible {
+      outline: 3px solid rgba(23, 107, 75, .22);
+      outline-offset: 2px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+      min-height: 92px;
+      padding: 17px max(28px, calc((100vw - 1440px) / 2));
+      background: rgba(255, 255, 255, .94);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 13px;
+      flex: 0 0 auto;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 46px;
+      height: 46px;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(145deg, #21815d, #10583e);
+      border-radius: 15px;
+      box-shadow: 0 8px 18px rgba(23, 107, 75, .2);
+    }
+
+    .brand-mark svg { width: 25px; height: 25px; }
+    .brand-name { margin: 0; font-size: 16px; font-weight: 760; letter-spacing: -.025em; }
+    .brand-caption { display: block; margin-top: 1px; color: var(--muted); font-size: 11px; letter-spacing: .055em; text-transform: uppercase; }
+
+    .header-connection {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-height: 44px;
+      padding: 0 14px;
+      background: #f5f8f6;
+      border: 1px solid #e4ebe6;
+      border-radius: 999px;
+    }
+
+    .connection-note { color: #839187; font-size: 11px; white-space: nowrap; }
+
+    .connection-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 112px;
+      color: #657187;
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .connection-dot {
+      width: 8px;
+      height: 8px;
+      background: #aab4c3;
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px #eef1f5;
+    }
+
+    .connection-state.is-connected { color: var(--success); }
+    .connection-state.is-connected .connection-dot { background: #2aa876; box-shadow: 0 0 0 3px #e4f6ed; }
+    .connection-state.is-checking .connection-dot { background: #dfa72c; box-shadow: 0 0 0 3px #fff4d8; animation: pulse 1.1s infinite; }
+    .connection-state.is-error { color: var(--danger); }
+    .connection-state.is-error .connection-dot { background: var(--danger); box-shadow: 0 0 0 3px #ffebed; }
+
+    .text-input {
+      width: 100%;
+      min-width: 0;
+      height: 42px;
+      padding: 0 13px;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid #dfe5ef;
+      border-radius: 11px;
+      transition: border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .text-input::placeholder { color: #a2acbb; }
+    .text-input:focus { border-color: #7fb69b; box-shadow: 0 0 0 4px rgba(23, 107, 75, .08); outline: 0; }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 0 16px;
+      color: #fff;
+      background: var(--brand);
+      border: 1px solid var(--brand);
+      border-radius: 11px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease, box-shadow .15s ease, opacity .15s ease;
+    }
+
+    .button:hover:not(:disabled) { background: var(--brand-dark); box-shadow: 0 7px 16px rgba(23, 107, 75, .18); transform: translateY(-1px); }
+    .button:active:not(:disabled) { transform: translateY(0); }
+    .button:disabled { cursor: not-allowed; opacity: .5; box-shadow: none; }
+    .button-dark { background: #263754; border-color: #263754; }
+    .button-dark:hover:not(:disabled) { background: #172843; }
+    .button-soft { color: #4256a4; background: var(--brand-soft); border-color: transparent; }
+    .button-soft:hover:not(:disabled) { color: #3048a2; background: #e1e8ff; box-shadow: none; }
+    .button-small { min-height: 36px; padding: 0 12px; font-size: 12px; }
+
+        .page-shell { width: min(1440px, 100%); margin: 0 auto; padding: 36px 32px 48px; }
+
+    .intro-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      margin: 0 2px 25px;
+    }
+
+    .eyebrow {
+      margin: 0 0 7px;
+      color: #6678bd;
+      font-size: 10px;
+      font-weight: 760;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .page-title { margin: 0; font-size: clamp(25px, 3vw, 34px); font-weight: 760; letter-spacing: -.045em; line-height: 1.1; }
+    .page-subtitle { max-width: 640px; margin: 9px 0 0; color: var(--muted); font-size: 14px; }
+
+    .secure-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      color: #54637b;
+      background: #edf1f7;
+      border-radius: 999px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .secure-note svg { width: 15px; height: 15px; color: #62728d; }
+
+    .notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin: 0 0 18px;
+      padding: 13px 16px;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      animation: notice-in .18s ease-out;
+    }
+
+    .notice-success { color: #166344; background: var(--success-soft); border-color: #d5efe2; }
+    .notice-error { color: #98323b; background: var(--danger-soft); border-color: #f6d7da; }
+    .notice-info { color: #42538f; background: #eff2ff; border-color: #dfe5ff; }
+    .notice-icon {
+      display: grid;
+      flex: 0 0 22px;
+      width: 22px;
+      height: 22px;
+      place-items: center;
+      margin-top: 1px;
+      background: rgba(255, 255, 255, .72);
+      border-radius: 50%;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .notice-body { min-width: 0; }
+    .notice-message { margin: 0; font-size: 13px; font-weight: 620; overflow-wrap: anywhere; }
+    .notice-link { display: inline-block; margin-top: 3px; color: inherit; font-size: 12px; font-weight: 750; text-underline-offset: 3px; }
+
+    .explorer-grid {
+      display: grid;
+      grid-template-columns: 310px minmax(0, 1fr);
+      align-items: stretch;
+      gap: 20px;
+    }
+
+    .panel {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid #e8ecf3;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar { display: flex; min-height: 650px; flex-direction: column; padding: 22px 18px 16px; }
+    .sidebar-head, .list-heading, .workspace-title-row, .activity-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .sidebar-head { padding: 0 3px 17px; }
+    .section-title { margin: 0; font-size: 15px; font-weight: 740; letter-spacing: -.02em; }
+    .folder-count {
+      display: inline-grid;
+      min-width: 25px;
+      height: 25px;
+      place-items: center;
+      padding: 0 7px;
+      color: #61708a;
+      background: #f1f4f8;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 740;
+    }
+
+    .field-label { display: block; margin: 0 0 7px 2px; color: #5e6c82; font-size: 11px; font-weight: 720; }
+    .folder-create { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+    .folder-create .text-input { height: 42px; font-size: 13px; }
+    .folder-create .button { padding: 0 12px; }
+    .folder-create-help { margin: 7px 2px 0; color: #97a1af; font-size: 10px; }
+    .folder-search-wrap { position: relative; margin: 16px 0 0; }
+    .folder-search-wrap svg { position: absolute; top: 50%; left: 12px; width: 16px; height: 16px; color: #9ba6b7; transform: translateY(-50%); pointer-events: none; }
+    .folder-search-input { height: 39px; padding-left: 36px; background: #fafbfe; font-size: 12px; }
+
+    .list-heading { margin: 17px 3px 10px; }
+    .list-heading .section-title { font-size: 12px; color: #4d5b72; }
+    .text-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 5px;
+      color: #6375bf;
+      background: transparent;
+      border: 0;
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .text-button:hover:not(:disabled) { color: var(--brand-dark); background: #f1f3fc; }
+    .text-button:disabled { color: #aeb7c6; cursor: not-allowed; }
+    .text-button svg { width: 13px; height: 13px; }
+
+    .folder-list { display: flex; min-height: 275px; max-height: 390px; flex-direction: column; gap: 4px; overflow: auto; padding-right: 2px; }
+    .folder-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      width: 100%;
+      min-height: 46px;
+      padding: 8px 10px;
+      color: #56647a;
+      text-align: left;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      cursor: pointer;
+      transition: color .16s ease, background .16s ease, border-color .16s ease;
+    }
+    .folder-item:hover:not(:disabled) { color: #12583e; background: #f3f8f4; }
+    .folder-item.is-active { color: #155b41; background: #e9f4ed; border-color: #d2e7d9; }
+    .folder-item:disabled { cursor: wait; opacity: .7; }
+    .folder-icon { display: grid; flex: 0 0 30px; width: 30px; height: 30px; place-items: center; color: #9a7a2d; background: #fff4d7; border-radius: 9px; }
+    .folder-item.is-active .folder-icon { color: #176b4b; background: #d7eadc; }
+    .folder-icon svg { width: 17px; height: 17px; }
+    .folder-name { min-width: 0; overflow: hidden; font-size: 12px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .folder-chevron { flex: 0 0 auto; width: 15px; height: 15px; margin-left: auto; color: #98a2b2; transition: transform .16s ease; }
+    .folder-chevron.is-expanded { transform: rotate(90deg); }
+    .folder-chevron-spacer { flex: 0 0 15px; width: 15px; height: 15px; margin-left: auto; }
+
+    .folder-list-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 92px;
+      padding: 14px;
+      color: #8a95a8;
+      text-align: center;
+      font-size: 12px;
+    }
+    .sidebar-footnote { margin: auto 4px 0; padding-top: 20px; color: #96a0ae; font-size: 10px; line-height: 1.5; }
+
+    .workspace { display: flex; min-height: 650px; flex-direction: column; padding: 25px; }
+    .workspace-title-row { align-items: flex-start; margin-bottom: 21px; }
+    .workspace-title-copy { min-width: 0; }
+    .workspace-eyebrow { margin-bottom: 5px; color: #8793a7; font-size: 10px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    .active-folder-name { margin: 0; overflow-wrap: anywhere; font-size: 21px; font-weight: 755; letter-spacing: -.035em; }
+    .workspace-hint { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+    .folder-badge { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; color: #66748c; background: #f3f5f8; border-radius: 99px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .folder-badge svg { width: 13px; height: 13px; }
+    .folder-badge.is-active { color: #3f58b6; background: #edf1ff; }
+
+    .upload-zone {
+      display: flex;
+      min-height: 258px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 27px 18px 23px;
+      text-align: center;
+      background: linear-gradient(180deg, #fbfcff 0%, #f8faff 100%);
+      border: 1.5px dashed #c9d3e7;
+      border-radius: 18px;
+      transition: border-color .18s ease, background .18s ease, opacity .18s ease, transform .18s ease;
+    }
+    .upload-zone.is-disabled { color: #8c98aa; background: #f9fafc; border-color: #e0e5ec; }
+    .upload-zone.is-dragging { border-color: #637ce4; background: #f1f4ff; transform: scale(1.005); }
+    .upload-art {
+      display: grid;
+      width: 61px;
+      height: 61px;
+      place-items: center;
+      margin-bottom: 14px;
+      color: #536dd6;
+      background: #e9edff;
+      border-radius: 19px;
+    }
+    .upload-zone.is-disabled .upload-art { color: #9ca7b7; background: #eef1f5; }
+    .upload-art svg { width: 29px; height: 29px; }
+    .upload-title { margin: 0; color: #2d3b53; font-size: 16px; font-weight: 750; letter-spacing: -.02em; }
+    .upload-copy { margin: 6px 0 15px; color: #7c899d; font-size: 12px; }
+    .upload-copy strong { color: #596bca; font-weight: 700; }
+    .upload-limit { margin: 11px 0 0; color: #9aa4b3; font-size: 10px; }
+    .upload-folder-prompt { display: none; margin: -3px 0 13px; color: #9a751f; font-size: 11px; font-weight: 650; }
+    .upload-zone.is-disabled .upload-folder-prompt { display: block; }
+    .upload-zone.is-disabled .upload-copy { margin-top: 4px; }
+    .upload-zone.is-disabled .upload-button { pointer-events: none; }
+    .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+
+    .file-browser { margin-top: 25px; padding-top: 22px; border-top: 1px solid var(--line); }
+    .file-browser-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .file-browser-heading .section-title { font-size: 13px; }
+    .file-browser-hint { margin: 4px 0 0; color: #929daf; font-size: 10px; }
+    .file-count { display: inline-grid; min-width: 25px; height: 25px; place-items: center; padding: 0 7px; color: #62718a; background: #f1f4f8; border-radius: 99px; font-size: 10px; font-weight: 740; }
+    .file-tools { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; margin: 13px 0 10px; }
+    .file-search-wrap { position: relative; min-width: 0; }
+    .file-search-wrap svg { position: absolute; top: 50%; left: 12px; width: 16px; height: 16px; color: #9ba6b7; transform: translateY(-50%); pointer-events: none; }
+    .file-search-input { height: 40px; padding-left: 37px; font-size: 12px; }
+    .include-subfolders { display: inline-flex; align-items: center; gap: 7px; color: #78859a; font-size: 10px; white-space: nowrap; cursor: pointer; }
+    .include-subfolders input { width: 15px; height: 15px; margin: 0; accent-color: var(--brand); }
+    .include-subfolders input:disabled { cursor: not-allowed; }
+    .file-list { display: flex; flex-direction: column; gap: 7px; }
+    .file-row { display: flex; align-items: center; gap: 11px; min-width: 0; padding: 10px 12px; background: #fff; border: 1px solid #edf0f5; border-radius: 13px; }
+    .file-row-icon { display: grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; color: #5870c8; background: #eff2ff; border-radius: 10px; }
+    .file-row-icon.is-pdf { color: #b95357; background: #fff0f0; }
+    .file-row-icon svg { width: 17px; height: 17px; }
+    .file-row-info { min-width: 0; flex: 1 1 auto; }
+    .file-row-name { display: block; overflow: hidden; color: #36445a; font-size: 11px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .file-row-meta { display: block; margin-top: 2px; overflow: hidden; color: #9aa4b2; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .file-row-link { flex: 0 0 auto; padding: 6px 9px; color: #5368c8; background: #f1f3ff; border-radius: 8px; font-size: 10px; font-weight: 750; text-decoration: none; white-space: nowrap; }
+    .file-row-link:hover { background: #e7ebff; }
+    .file-browser-state { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 64px; padding: 13px; color: #8f9aab; text-align: center; background: #fafbfd; border: 1px solid #edf0f5; border-radius: 13px; font-size: 11px; }
+
+    .activity-section { margin-top: 25px; }
+    .activity-heading { margin: 0 1px 11px; }
+    .activity-heading .section-title { font-size: 13px; }
+    .activity-caption { color: #97a1b0; font-size: 10px; }
+    .activity-empty { display: flex; align-items: center; gap: 11px; min-height: 68px; padding: 13px 14px; color: #909bab; background: #fafbfd; border: 1px solid #edf0f5; border-radius: 13px; font-size: 11px; }
+    .activity-empty svg { flex: 0 0 auto; width: 19px; height: 19px; color: #a5afbe; }
+    .activity-list { display: flex; flex-direction: column; gap: 8px; }
+    .activity-item { display: flex; align-items: center; gap: 11px; min-width: 0; padding: 11px 13px; background: #fff; border: 1px solid #edf0f5; border-radius: 13px; }
+    .activity-file-icon { display: grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; color: #5e71cb; background: #f0f2ff; border-radius: 10px; }
+    .activity-file-icon svg { width: 17px; height: 17px; }
+    .activity-info { min-width: 0; flex: 1 1 auto; }
+    .activity-file-name { display: block; overflow: hidden; color: #36445a; font-size: 11px; font-weight: 680; text-overflow: ellipsis; white-space: nowrap; }
+    .activity-detail { display: block; margin-top: 2px; color: #9aa4b2; font-size: 10px; }
+    .activity-status { flex: 0 0 auto; color: #8994a4; font-size: 10px; font-weight: 680; white-space: nowrap; }
+    .activity-status.is-success { color: var(--success); }
+    .activity-status.is-error { color: var(--danger); }
+    .activity-link { flex: 0 0 auto; color: #5368c8; font-size: 10px; font-weight: 750; text-decoration: none; white-space: nowrap; }
+    .activity-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .spinner { width: 14px; height: 14px; border: 2px solid #dce3ef; border-top-color: #536bd1; border-radius: 50%; animation: spin .7s linear infinite; }
+    .button .spinner { width: 13px; height: 13px; border-color: rgba(255,255,255,.4); border-top-color: #fff; }
+
+    .footer-note { margin: 19px 2px 0; color: #98a2b0; font-size: 10px; line-height: 1.5; text-align: center; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 50% { box-shadow: 0 0 0 5px rgba(223,167,44,.13); } }
+    @keyframes notice-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 1050px) {
+      .topbar { align-items: flex-start; flex-direction: column; gap: 15px; padding: 16px 24px; }
+      .header-connection { width: fit-content; }
+      .explorer-grid { grid-template-columns: 285px minmax(0, 1fr); gap: 15px; }
+      .workspace { padding: 21px; }
+    }
+
+    @media (max-width: 760px) {
+      .topbar { padding: 15px 17px; }
+      .header-connection { width: 100%; justify-content: space-between; }
+      .page-shell { padding: 26px 16px 34px; }
+      .intro-row { align-items: flex-start; flex-direction: column; gap: 14px; margin-bottom: 19px; }
+      .secure-note { font-size: 10px; }
+      .explorer-grid { grid-template-columns: 1fr; }
+      .sidebar, .workspace { min-height: unset; }
+      .sidebar { padding: 19px 16px 14px; }
+      .folder-list { min-height: 110px; max-height: 245px; }
+      .sidebar-footnote { margin-top: 18px; }
+      .workspace { padding: 20px 16px; }
+      .upload-zone { min-height: 238px; }
+      .file-tools { grid-template-columns: 1fr; gap: 9px; }
+      .include-subfolders { white-space: normal; }
+    }
+
+    @media (max-width: 430px) {
+      .brand-name { font-size: 15px; }
+      .brand-caption { font-size: 9px; }
+      .brand-mark { width: 42px; height: 42px; }
+      .header-connection { gap: 8px; padding: 0 10px; }
+      .connection-state { min-width: 0; font-size: 11px; }
+      .connection-note { font-size: 9px; }
+      .page-title { font-size: 27px; }
+      .workspace-title-row { gap: 8px; }
+      .folder-badge { padding: 6px 8px; font-size: 9px; }
+      .active-folder-name { font-size: 18px; }
+      .activity-item { gap: 8px; padding: 10px; }
+      .activity-link { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Tarachand MV School home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3.5 7.25A1.75 1.75 0 0 1 5.25 5.5h4.1l1.7 1.8h7.7A1.75 1.75 0 0 1 20.5 9v9.25A1.75 1.75 0 0 1 18.75 20h-13A2.25 2.25 0 0 1 3.5 17.75V7.25Z" fill="currentColor" opacity=".96"/>
+          <path d="M3.75 9h16.5" stroke="#176b4b" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M9 12.25h6M9 15.25h6" stroke="#176b4b" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span>
+        <span class="brand-name">Tarachand MV School</span>
+        <span class="brand-caption">School document manager</span>
+      </span>
+    </a>
+
+    <div class="header-connection" aria-label="Automatic Google Drive connection">
+      <div id="connectionState" class="connection-state is-checking" role="status" aria-live="polite">
+        <span class="connection-dot" aria-hidden="true"></span>
+        <span id="connectionLabel">Connecting to Google Drive…</span>
+      </div>
+      <span class="connection-note">Automatic connection</span>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="intro-row" aria-labelledby="pageTitle">
+      <div>
+        <p class="eyebrow">Your school's files, organized</p>
+        <h1 id="pageTitle" class="page-title">Document workspace</h1>
+        <p class="page-subtitle">Browse every folder, search files across Drive, and upload photos or PDFs directly to the folder you choose.</p>
+      </div>
+      <div class="secure-note">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.5 16 5v4.45c0 3.8-2.56 6.7-6 8.05-3.44-1.35-6-4.25-6-8.05V5l6-2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m7.5 9.9 1.65 1.65 3.45-3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Files are saved to the connected Google Drive
+      </div>
+    </section>
+
+    <div id="globalNotice" class="notice" role="status" aria-live="polite" hidden></div>
+
+    <div class="explorer-grid">
+      <aside class="panel sidebar" aria-label="Folder explorer">
+        <div class="sidebar-head">
+          <h2 class="section-title">Your folders</h2>
+          <span id="folderCount" class="folder-count" aria-label="Folder count">0</span>
+        </div>
+
+        <label class="field-label" for="folderName">Create a folder</label>
+        <div class="folder-create">
+          <input id="folderName" class="text-input" type="text" maxlength="120" autocomplete="off" placeholder="e.g. Grade 8 · 2026">
+          <button id="createFolderButton" class="button button-small" type="button" disabled>
+            <span aria-hidden="true">+</span> Create
+          </button>
+        </div>
+        <p class="folder-create-help">Creates inside the selected folder, or at the document root if none is selected.</p>
+        <div class="folder-search-wrap">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.6" stroke="currentColor" stroke-width="1.5"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <label class="visually-hidden" for="folderSearch">Search folders</label>
+          <input id="folderSearch" class="text-input folder-search-input" type="search" autocomplete="off" placeholder="Find a folder">
+        </div>
+
+        <div class="list-heading">
+          <h3 class="section-title">Folder tree</h3>
+          <button id="refreshFoldersButton" class="text-button" type="button" disabled>
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16.2 8A6.4 6.4 0 0 0 5 5.35L3.8 6.7M3.8 6.7V3.9M3.8 6.7h2.8M3.8 12A6.4 6.4 0 0 0 15 14.65l1.2-1.35m0 0v2.8m0-2.8h-2.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Refresh
+          </button>
+        </div>
+        <nav id="folderList" class="folder-list" aria-label="Google Drive folders" aria-busy="false"></nav>
+        <div id="folderListState" class="folder-list-state" role="status" aria-live="polite">Connect the web app to load folders.</div>
+        <p class="sidebar-footnote">Click a folder row to select it and open or close its subfolders. Its files appear on the right.</p>
+      </aside>
+
+      <section class="panel workspace" aria-label="Selected folder workspace">
+        <div class="workspace-title-row">
+          <div class="workspace-title-copy">
+            <div class="workspace-eyebrow">Current destination</div>
+            <h2 id="activeFolderName" class="active-folder-name">Choose a folder</h2>
+            <p id="activeFolderHelp" class="workspace-hint">Select a folder from the list to enable uploads.</p>
+          </div>
+          <span id="folderBadge" class="folder-badge">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2.8 6A1.5 1.5 0 0 1 4.3 4.5h4l1.5 1.6h5.9A1.5 1.5 0 0 1 17.2 7.6v7.1a1.5 1.5 0 0 1-1.5 1.5H4.3a1.5 1.5 0 0 1-1.5-1.5V6Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+            <span id="folderBadgeText">No folder selected</span>
+          </span>
+        </div>
+
+        <div id="uploadZone" class="upload-zone is-disabled" aria-disabled="true">
+          <div class="upload-art" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 21.5V7.75m0 0-5 5m5-5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7.5 19.5v4A2.5 2.5 0 0 0 10 26h12a2.5 2.5 0 0 0 2.5-2.5v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3 class="upload-title">Drop files here to upload</h3>
+          <p class="upload-copy">or choose <strong>photos and PDF documents</strong></p>
+          <p id="uploadFolderPrompt" class="upload-folder-prompt">Choose a folder first to set the destination.</p>
+          <button id="selectFilesButton" class="button upload-button" type="button" disabled>Browse files</button>
+          <input id="fileInput" class="visually-hidden" type="file" accept="image/*,application/pdf" multiple disabled>
+          <p class="upload-limit">Images and PDFs · up to 100 MiB per file</p>
+        </div>
+
+        <section class="file-browser" aria-labelledby="fileBrowserTitle">
+          <div class="file-browser-heading">
+            <div>
+              <h3 id="fileBrowserTitle" class="section-title">Browse files</h3>
+              <p id="fileBrowserHint" class="file-browser-hint">Select a folder to see its files, or search across all folders.</p>
+            </div>
+            <span id="fileCount" class="file-count" aria-label="File count">0</span>
+          </div>
+          <div class="file-tools">
+            <div class="file-search-wrap">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.6" stroke="currentColor" stroke-width="1.5"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <label class="visually-hidden" for="fileSearch">Search files</label>
+              <input id="fileSearch" class="text-input file-search-input" type="search" autocomplete="off" placeholder="Search files in all folders" disabled>
+            </div>
+            <label id="includeSubfoldersLabel" class="include-subfolders">
+              <input id="includeSubfolders" type="checkbox" disabled>
+              Include nested folders
+            </label>
+          </div>
+          <div id="fileBrowserState" class="file-browser-state" role="status" aria-live="polite">Connect the web app to browse or search files.</div>
+          <div id="fileList" class="file-list" aria-busy="false"></div>
+        </section>
+
+        <section class="activity-section" aria-labelledby="activityTitle">
+          <div class="activity-heading">
+            <h3 id="activityTitle" class="section-title">Recent uploads</h3>
+            <span class="activity-caption">This session</span>
+          </div>
+          <div id="activityEmpty" class="activity-empty">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 2.8h6.2L15.5 7v9.2a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V3.8a1 1 0 0 1 .5-1Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M11 3v4h4M7 11h6M7 14h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span>Files you upload will appear here with links to open them in Google Drive.</span>
+          </div>
+          <div id="activityList" class="activity-list" aria-live="polite"></div>
+        </section>
+      </section>
+    </div>
+
+    <p class="footer-note">Tarachand MV School documents are managed in the Google Drive folder configured for this app.</p>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const MAX_FILE_BYTES = 100 * 1024 * 1024;
+      const MAX_DIRECT_UPLOAD_BYTES = 10 * 1024 * 1024;
+      const UPLOAD_CHUNK_BYTES = 5 * 1024 * 1024;
+      // The Apps Script Web App endpoint this school dashboard connects to automatically.
+      const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxOU0S4b-hWPfT4EdYQbgYGKXCMLHssheRhi6948fnn6Lc2WskiZYD3ayTHlOkScqGG/exec';
+
+      const elements = {
+        connectionState: document.getElementById('connectionState'),
+        connectionLabel: document.getElementById('connectionLabel'),
+        globalNotice: document.getElementById('globalNotice'),
+        folderName: document.getElementById('folderName'),
+        folderSearch: document.getElementById('folderSearch'),
+        createFolderButton: document.getElementById('createFolderButton'),
+        refreshFoldersButton: document.getElementById('refreshFoldersButton'),
+        folderCount: document.getElementById('folderCount'),
+        folderList: document.getElementById('folderList'),
+        folderListState: document.getElementById('folderListState'),
+        activeFolderName: document.getElementById('activeFolderName'),
+        activeFolderHelp: document.getElementById('activeFolderHelp'),
+        folderBadge: document.getElementById('folderBadge'),
+        folderBadgeText: document.getElementById('folderBadgeText'),
+        uploadZone: document.getElementById('uploadZone'),
+        uploadFolderPrompt: document.getElementById('uploadFolderPrompt'),
+        selectFilesButton: document.getElementById('selectFilesButton'),
+        fileInput: document.getElementById('fileInput'),
+        fileBrowserHint: document.getElementById('fileBrowserHint'),
+        fileCount: document.getElementById('fileCount'),
+        fileSearch: document.getElementById('fileSearch'),
+        includeSubfolders: document.getElementById('includeSubfolders'),
+        fileBrowserState: document.getElementById('fileBrowserState'),
+        fileList: document.getElementById('fileList'),
+        activityEmpty: document.getElementById('activityEmpty'),
+        activityList: document.getElementById('activityList')
+      };
+
+      let apiUrl = '';
+      let folders = [];
+      let expandedFolderIds = new Set();
+      let activeFolder = null;
+      let files = [];
+      let filesTruncated = false;
+      let fileLoadError = '';
+      let fileRequestId = 0;
+      let fileSearchTimer = null;
+      let isConnecting = false;
+      let isCreatingFolder = false;
+      let isLoadingFolders = false;
+      let isLoadingFiles = false;
+      let isUploading = false;
+
+      function setConnectionState(state, label) {
+        elements.connectionState.className = 'connection-state' + (state ? ' is-' + state : '');
+        elements.connectionLabel.textContent = label;
+      }
+
+      function showNotice(type, message, linkUrl, linkLabel) {
+        const notice = elements.globalNotice;
+        notice.replaceChildren();
+        notice.className = 'notice notice-' + type;
+
+        const icon = document.createElement('span');
+        icon.className = 'notice-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.textContent = type === 'success' ? '✓' : (type === 'error' ? '!' : 'i');
+
+        const body = document.createElement('div');
+        body.className = 'notice-body';
+        const text = document.createElement('p');
+        text.className = 'notice-message';
+        text.textContent = message;
+        body.appendChild(text);
+
+        if (linkUrl) {
+          const safeUrl = safeHttpsUrl(linkUrl);
+          if (safeUrl) {
+            const link = document.createElement('a');
+            link.className = 'notice-link';
+            link.href = safeUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = linkLabel || 'Open in Google Drive';
+            body.appendChild(link);
+          }
+        }
+
+        notice.append(icon, body);
+        notice.hidden = false;
+      }
+
+      function safeHttpsUrl(value) {
+        try {
+          const url = new URL(String(value));
+          return url.protocol === 'https:' ? url.href : '';
+        } catch (_) {
+          return '';
+        }
+      }
+
+      function friendlyError(error) {
+        const message = error && error.message ? String(error.message) : String(error || 'Something went wrong.');
+        if (/failed to fetch|networkerror|load failed/i.test(message)) {
+          return 'The browser could not read a response from Apps Script. Check the deployed /exec URL and access setting, and serve this page over HTTP or HTTPS (not file://).';
+        }
+        return message;
+      }
+
+      function normalizeWebAppUrl(value) {
+        const raw = String(value || '').trim();
+        if (!raw) throw new Error('Paste the Web App URL copied from your Apps Script deployment.');
+        let parsed;
+        try {
+          parsed = new URL(raw);
+        } catch (_) {
+          throw new Error('Enter a complete HTTPS Web App URL ending in /exec.');
+        }
+        if (parsed.protocol !== 'https:') {
+          throw new Error('The Apps Script Web App URL must use HTTPS.');
+        }
+        if (!/\/exec\/?$/.test(parsed.pathname)) {
+          throw new Error('Use the deployed Web App URL that ends in /exec, not the editor or /dev URL.');
+        }
+        parsed.hash = '';
+        return parsed.href;
+      }
+
+      async function readJsonResponse(response) {
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (_) {
+          throw new Error('Apps Script did not return JSON. Confirm that this is the deployed /exec URL and that the latest deployment is active.');
+        }
+        if (!response.ok) {
+          throw new Error(data && data.message ? data.message : 'Apps Script returned HTTP ' + response.status + '.');
+        }
+        return data;
+      }
+
+      async function pingWebApp(url) {
+        const healthUrl = new URL(url);
+        healthUrl.searchParams.set('healthCheck', String(Date.now()));
+        const response = await fetch(healthUrl.href, {
+          method: 'GET',
+          redirect: 'follow',
+          cache: 'no-store'
+        });
+        const data = await readJsonResponse(response);
+        if (!data || data.status !== 'success') {
+          throw new Error(data && data.message ? data.message : 'The Apps Script health check did not succeed.');
+        }
+        return data;
+      }
+
+      async function apiPost(payload) {
+        if (!apiUrl) throw new Error('Connect the Apps Script Web App before using Drive.');
+        let response;
+        try {
+          response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(payload),
+            redirect: 'follow'
+          });
+        } catch (error) {
+          throw new Error(friendlyError(error));
+        }
+        const data = await readJsonResponse(response);
+        if (!data || data.status !== 'success') {
+          throw new Error(data && data.message ? data.message : 'The Apps Script request failed.');
+        }
+        return data;
+      }
+
+      async function apiPostChunkWithRetry(payload) {
+        let lastError;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            return await apiPost(payload);
+          } catch (error) {
+            lastError = error;
+            const mayHaveLostResponse = /could not read a response|failed to fetch|network/i.test(String(error && error.message || error));
+            if (!mayHaveLostResponse || attempt === 2) throw error;
+            await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
+          }
+        }
+        throw lastError || new Error('The upload chunk could not be sent.');
+      }
+
+      function setFoldersLoading(loading) {
+        isLoadingFolders = loading;
+        elements.folderList.setAttribute('aria-busy', String(loading));
+        elements.refreshFoldersButton.disabled = !apiUrl || loading || isConnecting;
+        if (loading) {
+          elements.refreshFoldersButton.innerHTML = '<span class="spinner" aria-hidden="true"></span> Loading';
+        } else {
+          elements.refreshFoldersButton.innerHTML = '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16.2 8A6.4 6.4 0 0 0 5 5.35L3.8 6.7M3.8 6.7V3.9M3.8 6.7h2.8M3.8 12A6.4 6.4 0 0 0 15 14.65l1.2-1.35m0 0v2.8m0-2.8h-2.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Refresh';
+        }
+        syncActionButtons();
+      }
+
+      function renderFolders() {
+        elements.folderList.replaceChildren();
+        elements.folderCount.textContent = String(folders.length);
+        elements.folderCount.setAttribute('aria-label', folders.length + (folders.length === 1 ? ' folder' : ' folders'));
+
+        if (!apiUrl) {
+          elements.folderListState.textContent = 'Connect to load the school folder tree.';
+          elements.folderListState.hidden = false;
+          return;
+        }
+
+        if (isLoadingFolders && folders.length === 0) {
+          const spinner = document.createElement('span');
+          spinner.className = 'spinner';
+          spinner.setAttribute('aria-hidden', 'true');
+          elements.folderListState.replaceChildren(spinner, document.createTextNode('Loading folder tree…'));
+          elements.folderListState.hidden = false;
+          return;
+        }
+
+        if (folders.length === 0) {
+          elements.folderListState.textContent = isLoadingFolders ? 'Refreshing folders…' : 'No folders yet. Create your first folder above.';
+          elements.folderListState.hidden = false;
+          return;
+        }
+
+        const folderQuery = elements.folderSearch.value.trim().toLowerCase();
+        const folderById = new Map(folders.map((folder) => [folder.id, folder]));
+        const childrenByParent = new Map();
+        folders.forEach((folder) => {
+          const parentKey = String(folder.parentId || '');
+          if (!childrenByParent.has(parentKey)) childrenByParent.set(parentKey, []);
+          childrenByParent.get(parentKey).push(folder);
+        });
+
+        const visibleIds = folderQuery ? new Set() : null;
+        const autoExpandedIds = new Set();
+        if (folderQuery) {
+          folders.forEach((folder) => {
+            const searchable = String((folder.path || folder.name) + ' ' + folder.name).toLowerCase();
+            if (searchable.indexOf(folderQuery) < 0) return;
+            let current = folder;
+            while (current) {
+              visibleIds.add(current.id);
+              if (current.id !== folder.id) autoExpandedIds.add(current.id);
+              current = folderById.get(current.parentId);
+            }
+          });
+          if (visibleIds.size === 0) {
+            elements.folderListState.textContent = 'No folders match “' + elements.folderSearch.value.trim() + '”.';
+            elements.folderListState.hidden = false;
+            return;
+          }
+        }
+
+        const rootFolders = folders.filter((folder) => !folderById.has(folder.parentId));
+        elements.folderListState.hidden = true;
+
+        const renderBranch = (nodes, depth) => {
+          nodes.forEach((folder) => {
+            if (visibleIds && !visibleIds.has(folder.id)) return;
+            const childFolders = childrenByParent.get(folder.id) || [];
+            const hasChildren = childFolders.length > 0;
+            const isExpanded = hasChildren && (expandedFolderIds.has(folder.id) || autoExpandedIds.has(folder.id));
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'folder-item' + (activeFolder && activeFolder.id === folder.id ? ' is-active' : '') + (hasChildren ? ' has-children' : '');
+            button.setAttribute('aria-pressed', String(Boolean(activeFolder && activeFolder.id === folder.id)));
+            if (hasChildren) button.setAttribute('aria-expanded', String(isExpanded));
+            button.disabled = isUploading || isCreatingFolder;
+            button.style.paddingLeft = (10 + Math.min(depth, 6) * 15) + 'px';
+            button.title = hasChildren ? (isExpanded ? 'Close ' : 'Open ') + (folder.path || folder.name) : (folder.path || folder.name);
+
+            const icon = document.createElement('span');
+            icon.className = 'folder-icon';
+            icon.setAttribute('aria-hidden', 'true');
+            icon.innerHTML = '<svg viewBox="0 0 20 20" fill="none"><path d="M2.8 6A1.5 1.5 0 0 1 4.3 4.5h4l1.5 1.6h5.9A1.5 1.5 0 0 1 17.2 7.6v7.1a1.5 1.5 0 0 1-1.5 1.5H4.3a1.5 1.5 0 0 1-1.5-1.5V6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+
+            const name = document.createElement('span');
+            name.className = 'folder-name';
+            name.textContent = folder.name;
+            name.title = folder.path || folder.name;
+
+            button.append(icon, name);
+            if (hasChildren) {
+              const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+              chevron.setAttribute('viewBox', '0 0 20 20');
+              chevron.setAttribute('fill', 'none');
+              chevron.setAttribute('class', 'folder-chevron' + (isExpanded ? ' is-expanded' : ''));
+              chevron.setAttribute('aria-hidden', 'true');
+              const chevronPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              chevronPath.setAttribute('d', 'm7.5 4.5 5.5 5.5-5.5 5.5');
+              chevronPath.setAttribute('stroke', 'currentColor');
+              chevronPath.setAttribute('stroke-width', '1.6');
+              chevronPath.setAttribute('stroke-linecap', 'round');
+              chevronPath.setAttribute('stroke-linejoin', 'round');
+              chevron.appendChild(chevronPath);
+              button.appendChild(chevron);
+            } else {
+              const spacer = document.createElement('span');
+              spacer.className = 'folder-chevron-spacer';
+              spacer.setAttribute('aria-hidden', 'true');
+              button.appendChild(spacer);
+            }
+
+            button.addEventListener('click', () => {
+              if (isUploading || isCreatingFolder) return;
+              if (hasChildren) {
+                if (expandedFolderIds.has(folder.id)) expandedFolderIds.delete(folder.id);
+                else expandedFolderIds.add(folder.id);
+              }
+              setActiveFolder(folder);
+            });
+            elements.folderList.appendChild(button);
+
+            if (isExpanded) renderBranch(childFolders, depth + 1);
+          });
+        };
+
+        renderBranch(rootFolders, 0);
+      }
+
+      function setActiveFolder(folder) {
+        activeFolder = folder || null;
+        files = [];
+        filesTruncated = false;
+        fileLoadError = '';
+        renderFolders();
+        updateWorkspace();
+        syncActionButtons();
+        loadFiles().catch(() => {});
+      }
+
+      function updateWorkspace() {
+        if (activeFolder) {
+          elements.activeFolderName.textContent = activeFolder.name;
+          elements.activeFolderHelp.textContent = 'New uploads and new subfolders will be saved inside this folder.';
+          elements.folderBadge.classList.add('is-active');
+          elements.folderBadgeText.textContent = 'Folder selected';
+          elements.uploadZone.classList.remove('is-disabled');
+          elements.uploadZone.setAttribute('aria-disabled', 'false');
+          elements.uploadFolderPrompt.hidden = true;
+          elements.fileBrowserHint.textContent = 'Browsing ' + (activeFolder.path || activeFolder.name) + '. Search this folder or include its nested folders.';
+          elements.fileSearch.placeholder = 'Search files in this folder';
+        } else {
+          elements.activeFolderName.textContent = 'Choose a folder';
+          elements.activeFolderHelp.textContent = apiUrl ? 'Select a folder from the list to enable uploads.' : 'Connect the Apps Script Web App, then select a Drive folder.';
+          elements.folderBadge.classList.remove('is-active');
+          elements.folderBadgeText.textContent = 'No folder selected';
+          elements.uploadZone.classList.add('is-disabled');
+          elements.uploadZone.setAttribute('aria-disabled', 'true');
+          elements.uploadFolderPrompt.hidden = false;
+          elements.fileBrowserHint.textContent = apiUrl ? 'Select a folder to browse, or search at least two characters across all folders.' : 'Connect the web app to browse or search files.';
+          elements.fileSearch.placeholder = 'Search files in all folders';
+        }
+        renderFiles();
+      }
+
+      function renderFiles() {
+        elements.fileList.replaceChildren();
+        elements.fileList.setAttribute('aria-busy', String(isLoadingFiles));
+        elements.fileCount.textContent = filesTruncated ? String(files.length) + '+' : String(files.length);
+        elements.fileCount.setAttribute('aria-label', (filesTruncated ? 'At least ' : '') + files.length + (files.length === 1 ? ' file' : ' files'));
+
+        const query = elements.fileSearch.value.trim();
+        const state = elements.fileBrowserState;
+        state.replaceChildren();
+        if (!apiUrl) {
+          state.textContent = 'Connect the web app to browse or search files.';
+          state.hidden = false;
+        } else if (isLoadingFiles) {
+          const spinner = document.createElement('span');
+          spinner.className = 'spinner';
+          spinner.setAttribute('aria-hidden', 'true');
+          state.append(spinner, document.createTextNode(activeFolder ? 'Loading files…' : 'Searching all folders…'));
+          state.hidden = false;
+        } else if (fileLoadError) {
+          state.textContent = 'Could not load files: ' + fileLoadError;
+          state.hidden = false;
+        } else if (!activeFolder && query.length < 2) {
+          state.textContent = 'Select a folder to browse, or enter at least two characters to search all folders.';
+          state.hidden = false;
+        } else if (files.length === 0) {
+          state.textContent = query ? 'No files matched “' + query + '”.' : (elements.includeSubfolders.checked ? 'No files were found in this folder tree.' : 'This folder has no files yet.');
+          state.hidden = false;
+        } else if (filesTruncated) {
+          state.textContent = 'Showing the first 500 matches. Add more search text to narrow the results.';
+          state.hidden = false;
+        } else {
+          state.hidden = true;
+        }
+
+        files.forEach((file) => {
+          const row = document.createElement('article');
+          row.className = 'file-row';
+
+          const icon = document.createElement('span');
+          const isPdf = String(file.mimeType || '').toLowerCase() === 'application/pdf' || /\.pdf$/i.test(file.name || '');
+          icon.className = 'file-row-icon' + (isPdf ? ' is-pdf' : '');
+          icon.setAttribute('aria-hidden', 'true');
+          icon.innerHTML = '<svg viewBox="0 0 20 20" fill="none"><path d="M5 2.8h6.2L15.5 7v9.2a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V3.8a1 1 0 0 1 .5-1Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M11 3v4h4M7 11h6M7 14h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+
+          const info = document.createElement('div');
+          info.className = 'file-row-info';
+          const name = document.createElement('span');
+          name.className = 'file-row-name';
+          name.textContent = file.name;
+          name.title = file.name;
+          const meta = document.createElement('span');
+          meta.className = 'file-row-meta';
+          const metaParts = [];
+          if (file.folderPath) metaParts.push(file.folderPath);
+          if (Number(file.size) > 0) metaParts.push(formatBytes(Number(file.size)));
+          if (file.updatedAt) {
+            const updatedDate = new Date(file.updatedAt);
+            if (!Number.isNaN(updatedDate.getTime())) metaParts.push(updatedDate.toLocaleDateString());
+          }
+          meta.textContent = metaParts.join(' · ') || String(file.mimeType || 'Drive file');
+          info.append(name, meta);
+
+          row.append(icon, info);
+          const safeUrl = safeHttpsUrl(file.fileUrl);
+          if (safeUrl) {
+            const link = document.createElement('a');
+            link.className = 'file-row-link';
+            link.href = safeUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = 'Open';
+            link.setAttribute('aria-label', 'Open ' + file.name + ' in Google Drive');
+            row.appendChild(link);
+          }
+          elements.fileList.appendChild(row);
+        });
+      }
+
+      async function loadFiles() {
+        const requestId = ++fileRequestId;
+        const query = elements.fileSearch.value.trim();
+        fileLoadError = '';
+        if (!apiUrl) {
+          files = [];
+          filesTruncated = false;
+          isLoadingFiles = false;
+          renderFiles();
+          return;
+        }
+        if (!activeFolder && query.length < 2) {
+          files = [];
+          filesTruncated = false;
+          isLoadingFiles = false;
+          renderFiles();
+          return;
+        }
+
+        const payload = {
+          action: 'listFiles',
+          query,
+          includeSubfolders: activeFolder ? elements.includeSubfolders.checked : true
+        };
+        if (activeFolder) {
+          payload.folderId = activeFolder.id;
+          payload.folderPath = activeFolder.path || activeFolder.name;
+        }
+
+        isLoadingFiles = true;
+        renderFiles();
+        syncActionButtons();
+        try {
+          const result = await apiPost(payload);
+          if (requestId !== fileRequestId) return;
+          files = Array.isArray(result.files) ? result.files : [];
+          filesTruncated = Boolean(result.truncated);
+        } catch (error) {
+          if (requestId !== fileRequestId) return;
+          files = [];
+          filesTruncated = false;
+          fileLoadError = friendlyError(error);
+        } finally {
+          if (requestId === fileRequestId) {
+            isLoadingFiles = false;
+            renderFiles();
+            syncActionButtons();
+          }
+        }
+      }
+
+      async function loadFolders(options = {}) {
+        if (!apiUrl) return;
+        const requestedSelection = options.selectId || (activeFolder && activeFolder.id) || '';
+        setFoldersLoading(true);
+        renderFolders();
+        try {
+          const result = await apiPost({ action: 'listFolders' });
+          folders = Array.isArray(result.folders) ? result.folders : [];
+          const nextFolder = requestedSelection ? folders.find((item) => item.id === requestedSelection) : null;
+          activeFolder = nextFolder || null;
+          renderFolders();
+          updateWorkspace();
+          if (!options.silent && !options.selectId) {
+            showNotice('success', 'Drive folders refreshed.');
+          }
+          return result;
+        } catch (error) {
+          elements.folderListState.textContent = 'Could not refresh the folder list.';
+          elements.folderListState.hidden = false;
+          if (!options.silent) showNotice('error', friendlyError(error));
+          throw error;
+        } finally {
+          setFoldersLoading(false);
+          renderFolders();
+          updateWorkspace();
+          loadFiles();
+        }
+      }
+
+      async function connectToWebApp() {
+        if (isConnecting) return;
+        let targetUrl;
+        try {
+          targetUrl = normalizeWebAppUrl(WEB_APP_URL);
+        } catch (error) {
+          setConnectionState('error', 'Web App URL is invalid');
+          showNotice('error', friendlyError(error));
+          return;
+        }
+
+        isConnecting = true;
+        setConnectionState('checking', 'Connecting to Google Drive…');
+        syncActionButtons();
+
+        try {
+          const health = await pingWebApp(targetUrl);
+          apiUrl = targetUrl;
+          setConnectionState('connected', 'Connected to Google Drive');
+          syncActionButtons();
+          try {
+            await loadFolders({ silent: true });
+            showNotice('success', 'Connected to ' + (health.managedFolderName || 'the school Drive folder') + '. Folders are ready.');
+          } catch (error) {
+            showNotice('error', 'Connected, but folders could not be loaded: ' + friendlyError(error));
+          }
+        } catch (error) {
+          apiUrl = '';
+          folders = [];
+          activeFolder = null;
+          files = [];
+          filesTruncated = false;
+          fileLoadError = '';
+          renderFolders();
+          updateWorkspace();
+          setConnectionState('error', 'Connection failed');
+          showNotice('error', friendlyError(error));
+        } finally {
+          isConnecting = false;
+          syncActionButtons();
+        }
+      }
+
+      async function createFolder() {
+        const folderName = elements.folderName.value.trim();
+        if (!folderName) {
+          showNotice('error', 'Enter a name for the new folder.');
+          elements.folderName.focus();
+          return;
+        }
+        if (!apiUrl) {
+          showNotice('error', 'Connect the Apps Script Web App before creating folders.');
+          return;
+        }
+
+        isCreatingFolder = true;
+        elements.createFolderButton.innerHTML = '<span class="spinner" aria-hidden="true"></span> Creating';
+        syncActionButtons();
+        let createdFolder;
+        try {
+          const payload = { action: 'createFolder', folderName };
+          if (activeFolder) payload.parentFolderId = activeFolder.id;
+          const result = await apiPost(payload);
+          createdFolder = result.folder;
+          elements.folderName.value = '';
+          syncActionButtons();
+        } catch (error) {
+          showNotice('error', friendlyError(error));
+          return;
+        } finally {
+          isCreatingFolder = false;
+          elements.createFolderButton.innerHTML = '<span aria-hidden="true">+</span> Create';
+          syncActionButtons();
+        }
+
+        try {
+          await loadFolders({ selectId: createdFolder.id, silent: true });
+          showNotice('success', 'Created and selected “' + createdFolder.name + '”.');
+        } catch (error) {
+          showNotice('error', 'The folder was created, but the list could not be refreshed: ' + friendlyError(error));
+        }
+      }
+
+      function getFileMimeType(file) {
+        const reportedType = String(file.type || '').toLowerCase();
+        if (reportedType === 'application/pdf' || reportedType.startsWith('image/')) return reportedType;
+
+        const extension = String(file.name || '').toLowerCase().match(/\.([a-z0-9]+)$/);
+        const extensionTypes = {
+          pdf: 'application/pdf',
+          jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif',
+          webp: 'image/webp', bmp: 'image/bmp', svg: 'image/svg+xml',
+          tif: 'image/tiff', tiff: 'image/tiff', heic: 'image/heic', heif: 'image/heif', avif: 'image/avif'
+        };
+        return extension ? (extensionTypes[extension[1]] || reportedType) : reportedType;
+      }
+
+      function validateFile(file) {
+        if (!file || !file.name) throw new Error('Could not read the selected file.');
+        if (!file.size) throw new Error('This file is empty.');
+        if (file.size > MAX_FILE_BYTES) throw new Error('This file is larger than the 100 MiB per-file limit.');
+        const mimeType = getFileMimeType(file);
+        if (mimeType !== 'application/pdf' && !/^image\//.test(mimeType)) {
+          throw new Error('Only photo/image files and PDF documents are supported.');
+        }
+        return mimeType;
+      }
+
+      function readBlobAsBase64(blob, fileName) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = () => reject(new Error('The browser could not read “' + fileName + '”.'));
+          reader.onabort = () => reject(new Error('Reading “' + fileName + '” was cancelled.'));
+          reader.onload = () => {
+            const dataUrl = String(reader.result || '');
+            const commaIndex = dataUrl.indexOf(',');
+            if (commaIndex < 0) {
+              reject(new Error('The browser returned an invalid file data URL.'));
+              return;
+            }
+            resolve(dataUrl.substring(commaIndex + 1));
+          };
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      function formatBytes(bytes) {
+        if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+      }
+
+      function createActivityItem(fileName, detail, state) {
+        const item = document.createElement('article');
+        item.className = 'activity-item';
+
+        const icon = document.createElement('span');
+        icon.className = 'activity-file-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.innerHTML = '<svg viewBox="0 0 20 20" fill="none"><path d="M5 2.8h6.2L15.5 7v9.2a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V3.8a1 1 0 0 1 .5-1Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M11 3v4h4M7 11h6M7 14h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+
+        const info = document.createElement('div');
+        info.className = 'activity-info';
+        const name = document.createElement('span');
+        name.className = 'activity-file-name';
+        name.textContent = fileName;
+        name.title = fileName;
+        const description = document.createElement('span');
+        description.className = 'activity-detail';
+        description.textContent = detail;
+        info.append(name, description);
+
+        const status = document.createElement('span');
+        status.className = 'activity-status' + (state === 'uploading' ? '' : ' is-' + state);
+        status.textContent = state === 'uploading' ? 'Uploading…' : (state === 'success' ? 'Saved' : 'Failed');
+
+        item.append(icon, info, status);
+        elements.activityList.prepend(item);
+        elements.activityEmpty.hidden = true;
+        while (elements.activityList.children.length > 10) {
+          elements.activityList.removeChild(elements.activityList.lastElementChild);
+        }
+        return { item, description, status };
+      }
+
+      function updateActivityItem(activity, state, detail, fileUrl) {
+        activity.description.textContent = detail;
+        activity.status.className = 'activity-status' + (state === 'success' ? ' is-success' : (state === 'error' ? ' is-error' : ''));
+        activity.status.textContent = state === 'success' ? 'Saved' : (state === 'error' ? 'Failed' : 'Uploading…');
+        if (state === 'success' && fileUrl) {
+          const safeUrl = safeHttpsUrl(fileUrl);
+          if (safeUrl) {
+            const link = document.createElement('a');
+            link.className = 'activity-link';
+            link.href = safeUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = 'Open in Drive';
+            activity.item.appendChild(link);
+          }
+        }
+      }
+
+      async function uploadFiles(fileList) {
+        const files = Array.from(fileList || []);
+        if (!files.length) return;
+        if (!apiUrl) {
+          showNotice('error', 'Connect the Apps Script Web App before uploading files.');
+          return;
+        }
+        if (!activeFolder) {
+          showNotice('error', 'Choose a destination folder before uploading.');
+          return;
+        }
+        if (isUploading) {
+          showNotice('info', 'The current upload batch is still running. Please wait for it to finish.');
+          return;
+        }
+
+        const destination = activeFolder;
+        isUploading = true;
+        syncActionButtons();
+        renderFolders();
+
+        try {
+          for (const file of files) {
+            let mimeType;
+            try {
+              mimeType = validateFile(file);
+            } catch (error) {
+              const failed = createActivityItem(file.name || 'Unknown file', 'Not uploaded', 'error');
+              updateActivityItem(failed, 'error', friendlyError(error));
+              showNotice('error', file.name + ': ' + friendlyError(error));
+              continue;
+            }
+
+            const activity = createActivityItem(file.name, formatBytes(file.size) + ' · ' + destination.name, 'uploading');
+            try {
+              let result;
+              if (file.size <= MAX_DIRECT_UPLOAD_BYTES) {
+                const fileData = await readBlobAsBase64(file, file.name);
+                result = await apiPost({
+                  action: 'uploadFile',
+                  folderId: destination.id,
+                  fileName: file.name,
+                  mimeType,
+                  fileData
+                });
+              } else {
+                const started = await apiPost({
+                  action: 'startUpload',
+                  folderId: destination.id,
+                  fileName: file.name,
+                  mimeType,
+                  fileSize: file.size
+                });
+                const uploadId = started.uploadId;
+                if (!uploadId) throw new Error('Apps Script did not return an upload session ID.');
+
+                let offset = 0;
+                let completed = null;
+                while (offset < file.size) {
+                  const chunkEnd = Math.min(offset + UPLOAD_CHUNK_BYTES, file.size);
+                  const chunkBlob = file.slice(offset, chunkEnd);
+                  const fileData = await readBlobAsBase64(chunkBlob, file.name);
+                  const chunkResult = await apiPostChunkWithRetry({
+                    action: 'uploadChunk',
+                    uploadId,
+                    offset,
+                    fileData
+                  });
+
+                  if (chunkResult.complete) {
+                    completed = chunkResult;
+                    offset = file.size;
+                    break;
+                  }
+
+                  const nextOffset = Number(chunkResult.nextOffset);
+                  if (!Number.isFinite(nextOffset) || nextOffset <= offset || nextOffset > file.size) {
+                    throw new Error('The upload made no progress. Please start the upload again.');
+                  }
+                  offset = nextOffset;
+                  updateActivityItem(activity, 'uploading', formatBytes(offset) + ' of ' + formatBytes(file.size) + ' · ' + destination.name);
+                }
+
+                if (!completed) throw new Error('Google Drive did not confirm that the file was complete. Please retry the upload.');
+                result = completed;
+              }
+
+              const finalName = result.fileName || file.name;
+              updateActivityItem(activity, 'success', formatBytes(file.size) + ' · ' + destination.name, result.fileUrl);
+              showNotice('success', 'Uploaded “' + finalName + '” to “' + destination.name + '”.', result.fileUrl, 'Open uploaded file in Google Drive');
+            } catch (error) {
+              const message = friendlyError(error);
+              updateActivityItem(activity, 'error', message);
+              showNotice('error', 'Could not upload “' + file.name + '”: ' + message);
+            }
+          }
+        } finally {
+          isUploading = false;
+          syncActionButtons();
+          renderFolders();
+        }
+        await loadFiles();
+      }
+
+      function syncActionButtons() {
+        const hasUrl = Boolean(apiUrl);
+        elements.createFolderButton.disabled = !hasUrl || isConnecting || isCreatingFolder || isUploading || !elements.folderName.value.trim();
+        elements.refreshFoldersButton.disabled = !hasUrl || isConnecting || isLoadingFolders;
+        elements.selectFilesButton.disabled = !hasUrl || !activeFolder || isUploading || isConnecting;
+        elements.fileInput.disabled = !hasUrl || !activeFolder || isUploading || isConnecting;
+        elements.folderSearch.disabled = !hasUrl || isConnecting;
+        elements.fileSearch.disabled = !hasUrl || isConnecting;
+        elements.includeSubfolders.disabled = !hasUrl || !activeFolder || isConnecting || isLoadingFiles;
+      }
+
+      elements.folderSearch.addEventListener('input', renderFolders);
+      elements.fileSearch.addEventListener('input', () => {
+        renderFiles();
+        if (fileSearchTimer) clearTimeout(fileSearchTimer);
+        fileSearchTimer = setTimeout(() => loadFiles(), 300);
+      });
+      elements.includeSubfolders.addEventListener('change', () => loadFiles());
+      elements.folderName.addEventListener('input', syncActionButtons);
+      elements.folderName.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          createFolder();
+        }
+      });
+      elements.createFolderButton.addEventListener('click', createFolder);
+      elements.refreshFoldersButton.addEventListener('click', () => {
+        loadFolders().catch(() => {});
+      });
+      elements.selectFilesButton.addEventListener('click', () => {
+        if (activeFolder && !isUploading) elements.fileInput.click();
+      });
+      elements.fileInput.addEventListener('change', (event) => {
+        uploadFiles(event.target.files);
+        event.target.value = '';
+      });
+
+      elements.uploadZone.addEventListener('dragenter', (event) => {
+        event.preventDefault();
+        if (activeFolder && !isUploading) elements.uploadZone.classList.add('is-dragging');
+      });
+      elements.uploadZone.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        if (activeFolder && !isUploading) event.dataTransfer.dropEffect = 'copy';
+      });
+      elements.uploadZone.addEventListener('dragleave', (event) => {
+        if (!elements.uploadZone.contains(event.relatedTarget)) elements.uploadZone.classList.remove('is-dragging');
+      });
+      elements.uploadZone.addEventListener('drop', (event) => {
+        event.preventDefault();
+        elements.uploadZone.classList.remove('is-dragging');
+        if (!activeFolder) {
+          showNotice('error', 'Choose a destination folder before dropping files.');
+          return;
+        }
+        uploadFiles(event.dataTransfer.files);
+      });
+
+      function initialize() {
+        updateWorkspace();
+        renderFolders();
+        syncActionButtons();
+        connectToWebApp();
+      }
+
+      initialize();
+    })();
+  </script>
+</body>
+</html>
